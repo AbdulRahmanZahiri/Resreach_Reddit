@@ -125,8 +125,8 @@ export default function About({ meta }: Props) {
           {['Next.js 15', 'React 19', 'TypeScript', 'Tailwind CSS v4', 'Plotly.js', 'react-plotly.js'].map(t => <Tag key={t}>{t}</Tag>)}
         </div>
         <div>
-          <p className="text-[11px] font-700 uppercase tracking-[.1em] text-slate-400 mb-2">Hosting</p>
-          {['Vercel', 'Static JSON data'].map(t => <Tag key={t}>{t}</Tag>)}
+          <p className="text-[11px] font-700 uppercase tracking-[.1em] text-slate-400 mb-2">Data</p>
+          {['Static JSON data'].map(t => <Tag key={t}>{t}</Tag>)}
         </div>
       </div>
 
