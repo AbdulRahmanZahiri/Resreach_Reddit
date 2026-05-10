@@ -408,7 +408,18 @@ export function aggMap(d: DashData, f: FilterState) {
     scS[r.geo] = (scS[r.geo] || 0) + r.sc_sum
     scN[r.geo] = (scN[r.geo] || 0) + r.sc_n
   })
-  const maxN    = Math.max(...Object.values(cnt), 1)
+
+  // Roll each city's posts into its parent province so province bubbles always
+  // reflect the full provincial conversation (province sub + all city subs combined)
+  const provCnt: Record<string, number> = { ...cnt }
+  Object.entries(cnt).forEach(([geo, n]) => {
+    if (!PROVINCE_LABELS.has(geo)) {
+      const prov = CITY_TO_PROVINCE[geo]
+      if (prov) provCnt[prov] = (provCnt[prov] || 0) + n
+    }
+  })
+
+  const maxN    = Math.max(...Object.values(provCnt), 1)
   const sizeref = 2.0 * maxN / (48 ** 2)
   const prov = { lat: [] as number[], lon: [] as number[], text: [] as string[], n: [] as number[] }
   const city = { lat: [] as number[], lon: [] as number[], text: [] as string[], n: [] as number[] }
@@ -416,9 +427,14 @@ export function aggMap(d: DashData, f: FilterState) {
     const coords = GEO_COORDS[geo]; if (!coords) return
     const [lat, lon] = coords
     const sc  = scN[geo] ? (scS[geo] / scN[geo]).toFixed(1) : '—'
-    const txt = `<b>${geo}</b><br>${n.toLocaleString()} records<br>Avg Score: ${sc}`
-    if (PROVINCE_LABELS.has(geo)) { prov.lat.push(lat); prov.lon.push(lon); prov.text.push(txt); prov.n.push(n) }
-    else                          { city.lat.push(lat); city.lon.push(lon); city.text.push(txt); city.n.push(n) }
+    if (PROVINCE_LABELS.has(geo)) {
+      const total = provCnt[geo]
+      const txt = `<b>${geo}</b><br>${total.toLocaleString()} records<br>Avg Score: ${sc}`
+      prov.lat.push(lat); prov.lon.push(lon); prov.text.push(txt); prov.n.push(total)
+    } else {
+      const txt = `<b>${geo}</b><br>${n.toLocaleString()} records<br>Avg Score: ${sc}`
+      city.lat.push(lat); city.lon.push(lon); city.text.push(txt); city.n.push(n)
+    }
   })
   return { prov, city, sizeref }
 }
