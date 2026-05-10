@@ -9,7 +9,7 @@ import { C, BL, TOPICS_LIST, FOUR_C_COLORS, FOUR_C_LIST } from '@/lib/constants'
 import PlotlyChart from '@/components/PlotlyChart'
 import ChartCard from '@/components/ChartCard'
 
-/* ─── Static BERTopic sub-topic data (pre-computed, does not change with filters) ── */
+/* ─── Static BERTopic data (pre-computed, not filter-dependent) ─── */
 const SUBTOPICS = [
   {
     topic: 'Access Barriers', color: '#E76F51', total: 7065,
@@ -28,7 +28,7 @@ const SUBTOPICS = [
   {
     topic: 'Care Navigation', color: '#E9C46A', total: 893,
     subs: [
-      { name: 'Referrals & Walk-In Clinics', n: 223, keywords: ['referral','walk-in clinic','family doctor','wait','need'] },
+      { name: 'Referrals & Walk-In Clinics',   n: 223, keywords: ['referral','walk-in clinic','family doctor','wait','need'] },
       { name: 'University & Transfer of Care', n: 194, keywords: ['ubc','transfer of care','canada','student','campus'] },
       { name: 'Mental Health Referrals',       n: 104, keywords: ['psychiatrist','adhd','referral','mental health','help'] },
     ],
@@ -50,7 +50,7 @@ const SUBTOPICS = [
   },
 ]
 
-/* ─── Section label ─────────────────────────────────────────────────────────── */
+/* ─── Section label ─── */
 function SectionLabel({ label, color }: { label: string; color: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '24px 0 16px' }}>
@@ -61,7 +61,7 @@ function SectionLabel({ label, color }: { label: string; color: string }) {
   )
 }
 
-/* ─── 4C stat card ──────────────────────────────────────────────────────────── */
+/* ─── 4C stat card ─── */
 function FourCCard({ cat, desc, n, total }: { cat: string; desc: string; n: number; total: number }) {
   const color = FOUR_C_COLORS[cat] || '#94A3B8'
   const pct   = total > 0 ? (n / total * 100) : 0
@@ -101,7 +101,7 @@ function FourCCard({ cat, desc, n, total }: { cat: string; desc: string; n: numb
   )
 }
 
-/* ─── Sub-topic cluster card ────────────────────────────────────────────────── */
+/* ─── Sub-topic cluster card ─── */
 function SubTopicCard({ topic, color, total, subs }: typeof SUBTOPICS[0]) {
   const maxN = Math.max(...subs.map(s => s.n))
   return (
@@ -109,30 +109,24 @@ function SubTopicCard({ topic, color, total, subs }: typeof SUBTOPICS[0]) {
       background: 'white', borderRadius: 14, border: '1px solid #E2E8F0',
       overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.04), 0 4px 14px rgba(0,0,0,.06)',
     }}>
-      {/* Header */}
       <div style={{ background: color, padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: 'white', letterSpacing: '-.01em' }}>{topic}</p>
         <span style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', background: 'rgba(0,0,0,.15)', padding: '2px 9px', borderRadius: 20 }}>
           {total.toLocaleString()} posts
         </span>
       </div>
-
-      {/* Sub-topics */}
       <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {subs.map((s, i) => (
           <div key={i}>
-            {/* Name + count */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
               <p style={{ fontSize: 11.5, fontWeight: 600, color: '#0F172A' }}>{s.name}</p>
               <span style={{ fontSize: 10.5, color: '#64748B', fontVariantNumeric: 'tabular-nums', flexShrink: 0, marginLeft: 8 }}>
                 {s.n.toLocaleString()} posts
               </span>
             </div>
-            {/* Progress bar */}
             <div style={{ height: 5, borderRadius: 3, background: '#F1F5F9', overflow: 'hidden', marginBottom: 7 }}>
               <div style={{ height: '100%', width: `${(s.n / maxN) * 100}%`, background: color, opacity: 0.7 + i * 0.1, borderRadius: 3 }} />
             </div>
-            {/* Keyword pills */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {s.keywords.map(kw => (
                 <span key={kw} style={{
@@ -158,9 +152,9 @@ export default function Topics() {
   const fourCSent = useMemo(() => aggFourCSentiment(d, f),       [d, f])
 
   /* 4C */
-  const cats       = [...FOUR_C_LIST] as string[]
-  const fourCMap   = Object.fromEntries(fourCDist)
-  const fourCTotal = cats.reduce((s, c) => s + (fourCMap[c] || 0), 0)
+  const cats        = [...FOUR_C_LIST] as string[]
+  const fourCMap    = Object.fromEntries(fourCDist)
+  const fourCTotal  = cats.reduce((s, c) => s + (fourCMap[c] || 0), 0)
   const sentOrdered = cats.map(c => fourCSent.find(s => s.label === c) || { label: c, pos: 0, neg: 0, neu: 0, mix: 0, n: 1 })
   const pct = (v: number, total: number) => total > 0 ? +(v / total * 100).toFixed(1) : 0
 
@@ -192,32 +186,57 @@ export default function Topics() {
     })
   })
 
+  /* Bubble chart — volume vs. negativity */
+  const maxVol        = Math.max(...cats.map(c => fourCMap[c] || 1))
+  const bubbleSizeref = 2.0 * maxVol / (48 ** 2)
+
+  /* Radar — short labels that wrap nicely */
+  const radarLabels = ['Contact', 'Continuity', 'Coordination', 'Comprehens.']
+  const radarWrap   = [...radarLabels, radarLabels[0]]
+
   return (
     <div>
 
-      {/* ══════ BERTOPIC SUB-TOPIC DISCOVERY ══════ */}
-      <SectionLabel label="BERTopic Sub-Topic Discovery" color="#2A9D8F" />
+      {/* ══════ SECTION 1: What People Are Really Talking About ══════ */}
+      <SectionLabel label="What People Are Really Talking About" color="#2A9D8F" />
 
-      {/* Sunburst — full hierarchy */}
-      <ChartCard
-        title="Topic Hierarchy — Main Clusters & Sub-Topics"
-        subtitle="Inner ring = 5 main BERTopic clusters · outer ring = sub-topics within each · click to drill in"
-        className="mb-5">
-        <PlotlyChart height={420} data={[{
-          type: 'sunburst' as never,
-          ids: sbIds, labels: sbLabels, parents: sbParents, values: sbValues,
-          marker: { colors: sbColors, line: { width: 2, color: 'white' } } as never,
-          branchvalues: 'total' as never,
-          hovertemplate: '<b>%{label}</b><br>%{value:,} posts · %{percentParent:.1%} of parent<extra></extra>' as never,
-          textfont: { size: 11, family: 'Inter, sans-serif' },
-          insidetextorientation: 'radial' as never,
-          leaf: { opacity: 0.85 },
-        } as never]} layout={{
-          paper_bgcolor: 'white',
-          margin: { t: 10, b: 10, l: 10, r: 10 },
-          font: { family: 'Inter, sans-serif' },
-        } as never} />
-      </ChartCard>
+      {/* Sunburst + Province heatmap side by side */}
+      <div className="grid grid-cols-2 gap-5 mb-5">
+        <ChartCard
+          title="How the Conversation Breaks Down by Theme"
+          subtitle="Click any slice to drill in — inner ring = 5 main discussion clusters · outer ring = sub-themes within each">
+          <PlotlyChart height={400} data={[{
+            type: 'sunburst' as never,
+            ids: sbIds, labels: sbLabels, parents: sbParents, values: sbValues,
+            marker: { colors: sbColors, line: { width: 2, color: 'white' } } as never,
+            branchvalues: 'total' as never,
+            hovertemplate: '<b>%{label}</b><br>%{value:,} posts · %{percentParent:.1%} of parent<extra></extra>' as never,
+            textfont: { size: 10, family: 'Inter, sans-serif' },
+            insidetextorientation: 'radial' as never,
+            leaf: { opacity: 0.85 },
+          } as never]} layout={{
+            paper_bgcolor: 'white',
+            margin: { t: 8, b: 8, l: 8, r: 8 },
+            font: { family: 'Inter, sans-serif' },
+          } as never} />
+        </ChartCard>
+
+        <ChartCard
+          title="Which Provinces Are Driving Each Topic?"
+          subtitle="Each row is a discussion theme · darker shade = more posts from that province">
+          <PlotlyChart height={400} data={[{
+            type: 'heatmap' as never, z: heatZ, x: geos, y: topics,
+            colorscale: [[0, '#EAF5FC'], [0.4, '#52C5B6'], [1, '#0B1F3A']] as never,
+            hovertemplate: '<b>%{y}</b><br>%{x}: %{z:,} posts<extra></extra>',
+            showscale: true, colorbar: { thickness: 12, len: 0.9, outlinewidth: 0, tickfont: { size: 9 } },
+          }]} layout={{
+            ...BL,
+            margin: { t: 20, b: 95, l: 160, r: 40 },
+            xaxis: { ...BL.xaxis, tickangle: -35, tickfont: { size: 10 } },
+            yaxis: { ...BL.yaxis, tickfont: { size: 10.5 } },
+          } as never} />
+        </ChartCard>
+      </div>
 
       {/* Sub-topic detail cards */}
       <div className="grid grid-cols-3 gap-4 mb-2">
@@ -227,8 +246,8 @@ export default function Topics() {
         {SUBTOPICS.slice(3).map(t => <SubTopicCard key={t.topic} {...t} />)}
       </div>
 
-      {/* ══════ 4C PRIMARY CARE FRAMEWORK ══════ */}
-      <SectionLabel label="4C Primary Care Framework" color="#E76F51" />
+      {/* ══════ SECTION 2: Primary Care Through the 4C Lens ══════ */}
+      <SectionLabel label="Primary Care Through the 4C Lens" color="#E76F51" />
 
       <div className="grid grid-cols-4 gap-4 mb-5">
         <FourCCard cat="Contact / Access"  n={fourCMap['Contact / Access']  || 0} total={fourCTotal}
@@ -241,77 +260,109 @@ export default function Topics() {
           desc="Mental health, chronic conditions, prevention, whole-person care" />
       </div>
 
-      <div className="grid grid-cols-2 gap-[18px] mb-2">
-        <ChartCard title="Discussion Volume by Care Dimension"
-          subtitle="How many posts relate to each of the four primary care dimensions">
-          <PlotlyChart height={300} data={[{
-            type: 'bar' as const, orientation: 'h' as never,
-            x: cats.map(c => fourCMap[c] || 0), y: cats,
-            marker: { color: cats.map(c => FOUR_C_COLORS[c]), line: { color: 'white', width: 1.5 } },
-            text: cats.map(c => {
-              const n = fourCMap[c] || 0
-              const p = fourCTotal > 0 ? (n / fourCTotal * 100).toFixed(1) : '0'
-              return `  ${n.toLocaleString()} · ${p}%`
-            }),
-            textposition: 'outside' as never,
-            textfont: { size: 11, color: '#0B1F3A', family: 'Inter, sans-serif' },
-            hovertemplate: '<b>%{y}</b><br>%{x:,} posts<extra></extra>',
-            cliponaxis: false as never,
+      <div className="grid grid-cols-3 gap-5 mb-2">
+
+        {/* Bubble chart: volume vs negativity */}
+        <ChartCard title="Volume vs. Frustration by Care Dimension"
+          subtitle="Bubble size = discussion volume · x-axis = how negatively people feel about that dimension">
+          <PlotlyChart height={290} data={[{
+            type: 'scatter' as const,
+            mode: 'markers+text' as never,
+            x: sentOrdered.map(s => pct(s.neg, s.n)),
+            y: cats.map(c => fourCMap[c] || 0),
+            text: ['Contact', 'Continuity', 'Coordination', 'Compreh.'],
+            textposition: 'top center' as never,
+            textfont: { size: 10.5, color: '#0F172A', family: 'Inter, sans-serif' },
+            marker: {
+              size: cats.map(c => fourCMap[c] || 0),
+              sizemode: 'area' as never,
+              sizeref: bubbleSizeref,
+              color: cats.map(c => FOUR_C_COLORS[c]),
+              opacity: 0.82,
+              line: { color: 'white', width: 2.5 },
+            },
+            hovertemplate: '<b>%{text}</b><br>Posts: %{y:,}<br>Negative: %{x:.1f}%<extra></extra>',
           }]} layout={{
-            ...BL,
-            xaxis: { ...BL.xaxis, title: { text: 'Posts' }, tickformat: ',' },
-            yaxis: { ...BL.yaxis, autorange: 'reversed' as never, tickfont: { size: 11 } },
-            margin: { t: 16, b: 48, l: 165, r: 120 },
+            xaxis: { ...BL.xaxis, title: { text: '% Negative Sentiment' }, range: [0, 80], ticksuffix: '%' as never },
+            yaxis: { ...BL.yaxis, title: { text: 'Total Posts' }, tickformat: ',' },
             showlegend: false,
+            margin: { t: 35, b: 55, l: 75, r: 20 },
+            paper_bgcolor: 'white',
           }} />
         </ChartCard>
 
-        <ChartCard title="Sentiment Tone per Care Dimension"
-          subtitle="What % of posts in each category express negative, mixed, or positive sentiment">
-          <PlotlyChart height={300} data={[
-            { x: sentOrdered.map(s => pct(s.neg, s.n)), y: sentOrdered.map(s => s.label), name: 'Negative', type: 'bar', orientation: 'h', marker: { color: C.coral }, hovertemplate: '<b>%{y}</b><br>Negative: %{x:.1f}%<extra></extra>' },
-            { x: sentOrdered.map(s => pct(s.mix, s.n)), y: sentOrdered.map(s => s.label), name: 'Mixed',    type: 'bar', orientation: 'h', marker: { color: C.gold },  hovertemplate: '<b>%{y}</b><br>Mixed: %{x:.1f}%<extra></extra>' },
-            { x: sentOrdered.map(s => pct(s.neu, s.n)), y: sentOrdered.map(s => s.label), name: 'Neutral',  type: 'bar', orientation: 'h', marker: { color: C.tealL }, hovertemplate: '<b>%{y}</b><br>Neutral: %{x:.1f}%<extra></extra>' },
-            { x: sentOrdered.map(s => pct(s.pos, s.n)), y: sentOrdered.map(s => s.label), name: 'Positive', type: 'bar', orientation: 'h', marker: { color: C.teal },  hovertemplate: '<b>%{y}</b><br>Positive: %{x:.1f}%<extra></extra>' },
+        {/* Radar: sentiment profile */}
+        <ChartCard title="Sentiment Profile Across Care Dimensions"
+          subtitle="How positive, negative, and mixed sentiment compare across all four care pillars">
+          <PlotlyChart height={290} data={[
+            {
+              type: 'scatterpolar' as never,
+              r: [...sentOrdered.map(s => pct(s.neg, s.n)), pct(sentOrdered[0].neg, sentOrdered[0].n)],
+              theta: radarWrap,
+              fill: 'toself' as never,
+              name: 'Negative',
+              line: { color: C.coral, width: 2 },
+              fillcolor: C.coral + '28',
+            } as never,
+            {
+              type: 'scatterpolar' as never,
+              r: [...sentOrdered.map(s => pct(s.pos, s.n)), pct(sentOrdered[0].pos, sentOrdered[0].n)],
+              theta: radarWrap,
+              fill: 'toself' as never,
+              name: 'Positive',
+              line: { color: C.teal, width: 2 },
+              fillcolor: C.teal + '28',
+            } as never,
+            {
+              type: 'scatterpolar' as never,
+              r: [...sentOrdered.map(s => pct(s.mix, s.n)), pct(sentOrdered[0].mix, sentOrdered[0].n)],
+              theta: radarWrap,
+              fill: 'toself' as never,
+              name: 'Mixed',
+              line: { color: C.gold, width: 2 },
+              fillcolor: C.gold + '28',
+            } as never,
+          ] as never[]} layout={{
+            polar: {
+              radialaxis: { visible: true, range: [0, 75], ticksuffix: '%', tickfont: { size: 8 }, gridcolor: '#E2E8F0' },
+              angularaxis: { tickfont: { size: 10.5 }, gridcolor: '#E2E8F0' },
+              bgcolor: 'white',
+            },
+            showlegend: true,
+            legend: { orientation: 'h', y: -0.18, font: { size: 9.5 }, x: 0.15 },
+            margin: { t: 20, b: 55, l: 20, r: 20 },
+            paper_bgcolor: 'white',
+          } as never} />
+        </ChartCard>
+
+        {/* Stacked sentiment bar */}
+        <ChartCard title="How Frustrated Are People About Each Issue?"
+          subtitle="Sentiment breakdown as a share of total posts within each care dimension">
+          <PlotlyChart height={290} data={[
+            { x: sentOrdered.map(s => pct(s.neg, s.n)), y: sentOrdered.map(s => s.label), name: 'Negative', type: 'bar', orientation: 'h' as never, marker: { color: C.coral }, hovertemplate: '<b>%{y}</b><br>Negative: %{x:.1f}%<extra></extra>' },
+            { x: sentOrdered.map(s => pct(s.mix, s.n)), y: sentOrdered.map(s => s.label), name: 'Mixed',    type: 'bar', orientation: 'h' as never, marker: { color: C.gold },  hovertemplate: '<b>%{y}</b><br>Mixed: %{x:.1f}%<extra></extra>' },
+            { x: sentOrdered.map(s => pct(s.neu, s.n)), y: sentOrdered.map(s => s.label), name: 'Neutral',  type: 'bar', orientation: 'h' as never, marker: { color: C.tealL }, hovertemplate: '<b>%{y}</b><br>Neutral: %{x:.1f}%<extra></extra>' },
+            { x: sentOrdered.map(s => pct(s.pos, s.n)), y: sentOrdered.map(s => s.label), name: 'Positive', type: 'bar', orientation: 'h' as never, marker: { color: C.teal },  hovertemplate: '<b>%{y}</b><br>Positive: %{x:.1f}%<extra></extra>' },
           ]} layout={{
             barmode: 'stack',
             xaxis: { ...BL.xaxis, title: { text: '% of posts' }, range: [0, 100] },
-            yaxis: { ...BL.yaxis, tickfont: { size: 11 } },
-            legend: { orientation: 'h', y: 1.12, font: { size: 10 } },
-            margin: { ...BL.margin, l: 175 },
+            yaxis: { ...BL.yaxis, tickfont: { size: 10 } },
+            legend: { orientation: 'h', y: 1.12, font: { size: 9 } },
+            margin: { t: 16, b: 48, l: 165, r: 20 },
           }} />
         </ChartCard>
+
       </div>
 
-      {/* ══════ TOPIC DISCUSSION BY PROVINCE ══════ */}
-      <SectionLabel label="Where Are Topics Most Discussed? — By Province" color="#2A9D8F" />
+      {/* ══════ SECTION 3: The Words That Define the Data ══════ */}
+      <SectionLabel label="The Words That Define the Data" color="#264653" />
 
-      <ChartCard
-        title="BERTopic Cluster × Province"
-        subtitle="Darker cell = more posts · rows = auto-discovered topic clusters · columns = provinces"
-        className="mb-2">
-        <PlotlyChart height={250} data={[{
-          type: 'heatmap' as never, z: heatZ, x: geos, y: topics,
-          colorscale: [[0, '#EAF5FC'], [0.4, '#52C5B6'], [1, '#0B1F3A']] as never,
-          hovertemplate: '<b>%{y}</b><br>%{x}: %{z:,} posts<extra></extra>',
-          showscale: true, colorbar: { thickness: 12, len: 0.9, outlinewidth: 0, tickfont: { size: 9 } },
-        }]} layout={{
-          ...BL,
-          margin: { t: 20, b: 80, l: 160, r: 40 },
-          xaxis: { ...BL.xaxis, tickangle: -30, tickfont: { size: 10.5 } },
-          yaxis: { ...BL.yaxis, tickfont: { size: 10.5 } },
-        } as never} />
-      </ChartCard>
-
-      {/* ══════ COLLECTION KEYWORDS ══════ */}
-      <SectionLabel label="Collection Keywords — Frequency & Sentiment" color="#264653" />
-
-      <ChartCard title="Keyword Frequency"
-        subtitle="How often each keyword appears across all posts · colour = sentiment lean (red = negative-heavy, teal = balanced)"
+      <ChartCard title="Most Frequently Mentioned Terms"
+        subtitle="How often each keyword appears across all posts · red = negative-heavy discussion · teal = balanced tone"
         className="mb-2">
         <PlotlyChart height={340} data={[{
           x: keywords.map(k => k.n), y: keywords.map(k => k.kw),
-          type: 'bar', orientation: 'h',
+          type: 'bar', orientation: 'h' as never,
           marker: {
             color: keywords.map(k => k.neg_pct > 55 ? C.coral : k.neg_pct > 35 ? C.gold : C.teal),
             line: { color: 'white', width: 0.5 },
