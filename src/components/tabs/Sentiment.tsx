@@ -6,7 +6,7 @@ import { C, BL } from '@/lib/constants'
 import PlotlyChart from '@/components/PlotlyChart'
 import ChartCard from '@/components/ChartCard'
 
-function SentGeoChart({ title, geoType }: { title: string; geoType: string }) {
+function SentGeoChart({ title, subtitle, geoType }: { title: string; subtitle?: string; geoType: string }) {
   const { data: d, filters: f } = useDash()
 
   const provData = useMemo(() => aggSentGeoProvince(d, f), [d, f])
@@ -29,7 +29,7 @@ function SentGeoChart({ title, geoType }: { title: string; geoType: string }) {
       : keys.map(k => cityRaw.find(([g]) => g === k)![1][field])
 
   return (
-    <ChartCard title={title}>
+    <ChartCard title={title} subtitle={subtitle}>
       <PlotlyChart height={340} data={[
         { x: get('neg'), y: labels, name: 'Negative', type: 'bar', orientation: 'h', marker: { color: C.coral } },
         { x: get('mix'), y: labels, name: 'Mixed',    type: 'bar', orientation: 'h', marker: { color: C.gold } },
@@ -138,8 +138,10 @@ export default function Sentiment() {
       </ChartCard>
 
       <div className="grid grid-cols-2 gap-[18px] mb-5">
-        <SentGeoChart title="Sentiment by Province" geoType="province" />
-        <SentGeoChart title="Sentiment by City"     geoType="city" />
+        <SentGeoChart title="Sentiment by Province" geoType="province"
+          subtitle="69,226 of 119,090 records have an identified province/city · 49,864 from national subreddits (r/canada, r/askcanada) or unspecified location cannot be attributed to a province" />
+        <SentGeoChart title="Sentiment by City" geoType="city"
+          subtitle="Records from city-level subreddits only · each city's posts are also rolled into its province total above" />
       </div>
 
     </div>

@@ -12,21 +12,21 @@ import ChartCard from '@/components/ChartCard'
 /* ─── Static BERTopic data (pre-computed, not filter-dependent) ─── */
 const SUBTOPICS = [
   {
-    topic: 'Access Barriers', color: '#E76F51', total: 7065,
+    topic: 'Access Barriers', color: '#E76F51', total: 7014,
     subs: [
       { name: 'Appointment & Urgent Care Access', n: 5373, keywords: ['family doctor','urgent care','appointment','walk-in','clinic','care','just'] },
       { name: 'Waitlists & Wait Times',           n: 1641, keywords: ['waitlist','wait times','canada','year','people','paid'] },
     ],
   },
   {
-    topic: 'Provider & Team', color: '#2A9D8F', total: 10188,
+    topic: 'Provider & Team', color: '#2A9D8F', total: 6086,
     subs: [
       { name: 'Family Doctor Availability', n: 4994, keywords: ['family doctor','doctors','care','health','patients','shortage'] },
       { name: 'Finding a New Doctor',       n: 1092, keywords: ['new doctor','accepting patients','looking for','family doctor','register'] },
     ],
   },
   {
-    topic: 'Care Navigation', color: '#E9C46A', total: 893,
+    topic: 'Care Navigation', color: '#E9C46A', total: 521,
     subs: [
       { name: 'Referrals & Walk-In Clinics',   n: 223, keywords: ['referral','walk-in clinic','family doctor','wait','need'] },
       { name: 'University & Transfer of Care', n: 194, keywords: ['ubc','transfer of care','canada','student','campus'] },
@@ -34,7 +34,7 @@ const SUBTOPICS = [
     ],
   },
   {
-    topic: 'Care Continuity', color: '#52C5B6', total: 349,
+    topic: 'Care Continuity', color: '#52C5B6', total: 191,
     subs: [
       { name: 'Long-Term Healthcare',          n: 100, keywords: ['long-term','healthcare','wait','health system','ongoing'] },
       { name: 'Regular Provider Relationship', n: 62,  keywords: ['regular','same doctor','walk-in','patient','family clinic'] },
@@ -42,7 +42,7 @@ const SUBTOPICS = [
     ],
   },
   {
-    topic: 'General Discussion', color: '#264653', total: 11505,
+    topic: 'General Discussion', color: '#264653', total: 7636,
     subs: [
       { name: 'Healthcare System & Doctors', n: 5878, keywords: ['healthcare','health','canada','doctors','system','policy'] },
       { name: 'Wait Times & Access Lists',   n: 1758, keywords: ['wait list','wait times','canada','years','access'] },
