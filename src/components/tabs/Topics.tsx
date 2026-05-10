@@ -204,7 +204,7 @@ export default function Topics() {
       <div className="grid grid-cols-2 gap-5 mb-5">
         <ChartCard
           title="How the Conversation Breaks Down by Theme"
-          subtitle="Click any slice to drill in — inner ring = 5 main discussion clusters · outer ring = sub-themes within each">
+          subtitle="BERTopic run on a 30,000-record representative sample · click any slice to drill in · inner ring = 5 clusters · outer ring = sub-themes">
           <PlotlyChart height={400} data={[{
             type: 'sunburst' as never,
             ids: sbIds, labels: sbLabels, parents: sbParents, values: sbValues,
@@ -236,6 +236,21 @@ export default function Topics() {
             yaxis: { ...BL.yaxis, tickfont: { size: 10.5 } },
           } as never} />
         </ChartCard>
+      </div>
+
+      {/* Sample-size note */}
+      <div style={{
+        background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
+        padding: '10px 16px', marginBottom: 16,
+        display: 'flex', alignItems: 'flex-start', gap: 10,
+      }}>
+        <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
+        <p style={{ fontSize: 11.5, color: '#92400E', lineHeight: 1.55, margin: 0 }}>
+          <strong>About these counts:</strong> BERTopic topic modelling is computationally intensive and was run on a
+          stratified random sample of <strong>30,000 records</strong> drawn from the full dataset of 119,090.
+          Post counts below reflect that sample — the themes and proportions are representative of the full corpus.
+          The 4C Framework analysis further down uses all 119,090 records.
+        </p>
       </div>
 
       {/* Sub-topic detail cards */}
@@ -358,7 +373,7 @@ export default function Topics() {
       <SectionLabel label="The Words That Define the Data" color="#264653" />
 
       <ChartCard title="Most Frequently Mentioned Terms"
-        subtitle="How often each keyword appears across all posts · red = negative-heavy discussion · teal = balanced tone"
+        subtitle="Pre-computed across all 119,090 records · not affected by the year/post-type filter · red = negative-heavy · teal = balanced"
         className="mb-2">
         <PlotlyChart height={340} data={[{
           x: keywords.map(k => k.n), y: keywords.map(k => k.kw),
