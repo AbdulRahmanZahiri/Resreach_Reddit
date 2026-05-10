@@ -10,23 +10,35 @@ import PlotlyChart from '@/components/PlotlyChart'
 import ChartCard from '@/components/ChartCard'
 
 /* ─── Static BERTopic data (pre-computed, not filter-dependent) ─── */
+// Cluster totals = real counts from full 119,090-record CSV (topic_4c_label column)
+// Sub-topic names and proportions come from BERTopic run on a 30,000-record sample
 const SUBTOPICS = [
   {
-    topic: 'Access Barriers', color: '#E76F51', total: 7014,
+    topic: 'Contact / Access', color: '#E76F51', total: 81220,
     subs: [
-      { name: 'Appointment & Urgent Care Access', n: 5373, keywords: ['family doctor','urgent care','appointment','walk-in','clinic','care','just'] },
+      { name: 'Appointment & Urgent Care Access', n: 5373, keywords: ['family doctor','urgent care','appointment','walk-in','clinic','care'] },
       { name: 'Waitlists & Wait Times',           n: 1641, keywords: ['waitlist','wait times','canada','year','people','paid'] },
+      { name: 'Family Doctor Availability',       n: 4994, keywords: ['family doctor','doctors','care','health','patients','shortage'] },
+      { name: 'Finding a New Doctor',             n: 1092, keywords: ['new doctor','accepting patients','looking for','family doctor','register'] },
     ],
   },
   {
-    topic: 'Provider & Team', color: '#2A9D8F', total: 6086,
+    topic: 'General Discussion', color: '#8ECAE6', total: 32521,
     subs: [
-      { name: 'Family Doctor Availability', n: 4994, keywords: ['family doctor','doctors','care','health','patients','shortage'] },
-      { name: 'Finding a New Doctor',       n: 1092, keywords: ['new doctor','accepting patients','looking for','family doctor','register'] },
+      { name: 'Healthcare System & Policy',  n: 5878, keywords: ['healthcare','health','canada','doctors','system','policy'] },
+      { name: 'Wait Times & Access Lists',   n: 1758, keywords: ['wait list','wait times','canada','years','access'] },
     ],
   },
   {
-    topic: 'Care Navigation', color: '#E9C46A', total: 521,
+    topic: 'Comprehensiveness', color: '#52C5B6', total: 2313,
+    subs: [
+      { name: 'Mental Health & ADHD',         n: 308, keywords: ['adhd','mental health','psychiatrist','diagnosis','medication'] },
+      { name: 'Prescriptions & Pharmacy',     n: 179, keywords: ['prescription','pharmacy','medication','refill','drug'] },
+      { name: 'Chronic & Preventive Care',    n: 185, keywords: ['chronic','pain','symptoms','blood test','mri','xray'] },
+    ],
+  },
+  {
+    topic: 'Care Coordination', color: '#E9C46A', total: 2220,
     subs: [
       { name: 'Referrals & Walk-In Clinics',   n: 223, keywords: ['referral','walk-in clinic','family doctor','wait','need'] },
       { name: 'University & Transfer of Care', n: 194, keywords: ['ubc','transfer of care','canada','student','campus'] },
@@ -34,18 +46,11 @@ const SUBTOPICS = [
     ],
   },
   {
-    topic: 'Care Continuity', color: '#52C5B6', total: 191,
+    topic: 'Care Continuity', color: '#2A9D8F', total: 816,
     subs: [
       { name: 'Long-Term Healthcare',          n: 100, keywords: ['long-term','healthcare','wait','health system','ongoing'] },
       { name: 'Regular Provider Relationship', n: 62,  keywords: ['regular','same doctor','walk-in','patient','family clinic'] },
       { name: 'Patient Experience',            n: 29,  keywords: ['feel','pain','experience','know','doctor'] },
-    ],
-  },
-  {
-    topic: 'General Discussion', color: '#264653', total: 7636,
-    subs: [
-      { name: 'Healthcare System & Doctors', n: 5878, keywords: ['healthcare','health','canada','doctors','system','policy'] },
-      { name: 'Wait Times & Access Lists',   n: 1758, keywords: ['wait list','wait times','canada','years','access'] },
     ],
   },
 ]

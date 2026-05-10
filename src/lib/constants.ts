@@ -63,15 +63,15 @@ export const GEO_COORDS: Record<string, [number, number]> = {
 }
 
 export const TOPIC_COLORS: Record<string, string> = {
-  'Access Barriers':   '#E76F51',
-  'Care Navigation':   '#E9C46A',
-  'Provider & Team':   '#2A9D8F',
-  'Care Continuity':   '#52C5B6',
+  'Contact / Access':  '#E76F51',
   'General Discussion':'#8ECAE6',
+  'Comprehensiveness': '#52C5B6',
+  'Care Coordination': '#E9C46A',
+  'Care Continuity':   '#2A9D8F',
 }
 
 export const TOPICS_LIST = [
-  'Access Barriers','Care Navigation','Provider & Team','Care Continuity','General Discussion',
+  'Contact / Access', 'General Discussion', 'Comprehensiveness', 'Care Coordination', 'Care Continuity',
 ]
 
 export const FOUR_C_LIST = ['Contact / Access', 'Continuity', 'Coordination', 'Comprehensiveness'] as const
