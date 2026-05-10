@@ -5,7 +5,6 @@ import { aggKPIs } from '@/lib/aggregations'
 import { DashProvider } from '@/lib/context'
 import Sidebar from '@/components/Sidebar'
 import Overview   from '@/components/tabs/Overview'
-import Temporal   from '@/components/tabs/Temporal'
 import Geographic from '@/components/tabs/Geographic'
 import Engagement from '@/components/tabs/Engagement'
 import Sentiment  from '@/components/tabs/Sentiment'
@@ -13,13 +12,12 @@ import Topics     from '@/components/tabs/Topics'
 import About      from '@/components/tabs/About'
 
 const TABS = [
-  { id: 'overview',   label: 'Overview'   },
-  { id: 'temporal',   label: 'Temporal'   },
-  { id: 'geographic', label: 'Geographic' },
-  { id: 'engagement', label: 'Engagement' },
-  { id: 'sentiment',  label: 'Sentiment'  },
-  { id: 'topics',     label: 'Topics'     },
-  { id: 'about',      label: 'About'      },
+  { id: 'overview',   label: 'Overview'           },
+  { id: 'topics',     label: 'Topics & Themes'    },
+  { id: 'sentiment',  label: 'Sentiment Analysis' },
+  { id: 'geographic', label: 'Geographic'         },
+  { id: 'engagement', label: 'Engagement'         },
+  { id: 'about',      label: 'About & Methods'    },
 ]
 
 export default function Dashboard({ data }: { data: DashData }) {
@@ -54,7 +52,6 @@ export default function Dashboard({ data }: { data: DashData }) {
 
   const tabContent: Record<string, React.ReactNode> = {
     overview:   <Overview />,
-    temporal:   <Temporal />,
     geographic: <Geographic />,
     engagement: <Engagement />,
     sentiment:  <Sentiment />,

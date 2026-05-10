@@ -149,8 +149,8 @@ export default function Overview() {
         } as never} />
       </ChartCard>
 
-      {/* Monthly + Yearly */}
-      <div className="grid grid-cols-2 gap-5 mb-6">
+      {/* Monthly + Yearly + Cumulative */}
+      <div className="grid grid-cols-3 gap-5 mb-6">
         <ChartCard title="Monthly Discussion Volume" subtitle="Posts and comments combined">
           <PlotlyChart height={250} data={[{
             x: monthly.x, y: monthly.y, type: 'scatter', mode: 'lines',
@@ -167,6 +167,17 @@ export default function Overview() {
             text: yearly.y.map(v => v.toLocaleString()), textposition: 'outside',
             hovertemplate: '%{x}: %{y:,}<extra></extra>',
           }]} layout={{ xaxis: { ...BL.xaxis, title: { text: 'Year' }, type: 'category' }, yaxis: { ...BL.yaxis, title: { text: 'Count' }, tickformat: ',' }, showlegend: false }} />
+        </ChartCard>
+
+        <ChartCard title="Cumulative Growth" subtitle="Total posts accumulated over time">
+          <PlotlyChart height={250} data={[{
+            x: monthly.x,
+            y: monthly.y.reduce((acc: number[], v) => { acc.push((acc[acc.length - 1] || 0) + v); return acc }, [] as number[]),
+            type: 'scatter', mode: 'lines',
+            line: { color: C.gold, width: 2 },
+            fill: 'tozeroy', fillcolor: 'rgba(233,196,106,.13)',
+            hovertemplate: '<b>%{x}</b><br>Cumulative: %{y:,}<extra></extra>',
+          }]} layout={{ xaxis: { ...BL.xaxis, title: { text: 'Month' } }, yaxis: { ...BL.yaxis, title: { text: 'Total Records' }, tickformat: ',' }, showlegend: false }} />
         </ChartCard>
       </div>
 
