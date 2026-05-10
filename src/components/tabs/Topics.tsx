@@ -2,7 +2,7 @@
 import { useMemo } from 'react'
 import { useDash } from '@/lib/context'
 import {
-  aggTopicGeo, aggKeywords,
+  aggTopicGeo, aggKeywords, aggTopicTotals,
   aggFourCDist, aggFourCSentiment,
 } from '@/lib/aggregations'
 import { C, BL, TOPICS_LIST, FOUR_C_COLORS, FOUR_C_LIST } from '@/lib/constants'
@@ -102,8 +102,12 @@ function FourCCard({ cat, desc, n, total }: { cat: string; desc: string; n: numb
 }
 
 /* ─── Sub-topic cluster card ─── */
-function SubTopicCard({ topic, color, total, subs }: typeof SUBTOPICS[0]) {
-  const maxN = Math.max(...subs.map(s => s.n))
+function SubTopicCard({ topic, color, total, subs, liveTotal }: typeof SUBTOPICS[0] & { liveTotal?: number }) {
+  const displayTotal = liveTotal ?? total
+  // Scale sub-topic counts from BERTopic sample proportions × live total
+  const sampleSum = subs.reduce((s, x) => s + x.n, 0) || 1
+  const scaledSubs = subs.map(s => ({ ...s, n: Math.round((s.n / sampleSum) * displayTotal) }))
+  const maxN = Math.max(...scaledSubs.map(s => s.n))
   return (
     <div style={{
       background: 'white', borderRadius: 14, border: '1px solid #E2E8F0',
@@ -112,11 +116,11 @@ function SubTopicCard({ topic, color, total, subs }: typeof SUBTOPICS[0]) {
       <div style={{ background: color, padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: 'white', letterSpacing: '-.01em' }}>{topic}</p>
         <span style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', background: 'rgba(0,0,0,.15)', padding: '2px 9px', borderRadius: 20 }}>
-          {total.toLocaleString()} posts
+          {displayTotal.toLocaleString()} posts
         </span>
       </div>
       <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {subs.map((s, i) => (
+        {scaledSubs.map((s, i) => (
           <div key={i}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
               <p style={{ fontSize: 11.5, fontWeight: 600, color: '#0F172A' }}>{s.name}</p>
@@ -146,10 +150,11 @@ function SubTopicCard({ topic, color, total, subs }: typeof SUBTOPICS[0]) {
 export default function Topics() {
   const { data: d, filters: f } = useDash()
 
-  const provGeo   = useMemo(() => aggTopicGeo(d, f, 'province'), [d, f])
-  const keywords  = useMemo(() => aggKeywords(d),                [d])
-  const fourCDist = useMemo(() => aggFourCDist(d, f),            [d, f])
-  const fourCSent = useMemo(() => aggFourCSentiment(d, f),       [d, f])
+  const provGeo     = useMemo(() => aggTopicGeo(d, f, 'province'),  [d, f])
+  const keywords    = useMemo(() => aggKeywords(d),                  [d])
+  const fourCDist   = useMemo(() => aggFourCDist(d, f),              [d, f])
+  const fourCSent   = useMemo(() => aggFourCSentiment(d, f),         [d, f])
+  const topicTotals = useMemo(() => aggTopicTotals(d, f),            [d, f])
 
   /* 4C */
   const cats        = [...FOUR_C_LIST] as string[]
@@ -171,17 +176,19 @@ export default function Topics() {
   const sbColors: string[]  = ['#F1F5F9']
 
   SUBTOPICS.forEach(t => {
+    const liveTotal   = topicTotals[t.topic] ?? t.total
+    const sampleSum   = t.subs.reduce((s, x) => s + x.n, 0) || 1
     sbIds.push(t.topic)
     sbLabels.push(t.topic)
     sbParents.push('Topics')
-    sbValues.push(t.total)
+    sbValues.push(liveTotal)
     sbColors.push(t.color)
     t.subs.forEach((s, i) => {
       const id = `${t.topic}::${s.name}`
       sbIds.push(id)
       sbLabels.push(s.name)
       sbParents.push(t.topic)
-      sbValues.push(s.n)
+      sbValues.push(Math.round((s.n / sampleSum) * liveTotal))
       sbColors.push(t.color + (i === 0 ? 'CC' : '88'))
     })
   })
@@ -255,10 +262,10 @@ export default function Topics() {
 
       {/* Sub-topic detail cards */}
       <div className="grid grid-cols-3 gap-4 mb-2">
-        {SUBTOPICS.slice(0, 3).map(t => <SubTopicCard key={t.topic} {...t} />)}
+        {SUBTOPICS.slice(0, 3).map(t => <SubTopicCard key={t.topic} {...t} liveTotal={topicTotals[t.topic]} />)}
       </div>
       <div className="grid grid-cols-2 gap-4 mb-2">
-        {SUBTOPICS.slice(3).map(t => <SubTopicCard key={t.topic} {...t} />)}
+        {SUBTOPICS.slice(3).map(t => <SubTopicCard key={t.topic} {...t} liveTotal={topicTotals[t.topic]} />)}
       </div>
 
       {/* ══════ SECTION 2: Primary Care Through the 4C Lens ══════ */}
