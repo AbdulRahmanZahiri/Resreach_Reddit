@@ -250,21 +250,6 @@ export default function Topics() {
         </ChartCard>
       </div>
 
-      {/* Sample-size note */}
-      <div style={{
-        background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
-        padding: '10px 16px', marginBottom: 16,
-        display: 'flex', alignItems: 'flex-start', gap: 10,
-      }}>
-        <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>ℹ️</span>
-        <p style={{ fontSize: 11.5, color: '#92400E', lineHeight: 1.55, margin: 0 }}>
-          <strong>About these counts:</strong> BERTopic topic modelling is computationally intensive and was run on a
-          stratified random sample of <strong>30,000 records</strong> drawn from the full dataset of 119,090.
-          Post counts below reflect that sample — the themes and proportions are representative of the full corpus.
-          The 4C Framework analysis further down uses all 119,090 records.
-        </p>
-      </div>
-
       {/* Sub-topic detail cards */}
       <div className="grid grid-cols-3 gap-4 mb-2">
         {SUBTOPICS.slice(0, 3).map(t => <SubTopicCard key={t.topic} {...t} liveTotal={topicTotals[t.topic]} />)}
