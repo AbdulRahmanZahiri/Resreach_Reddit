@@ -65,7 +65,34 @@ export default function About({ meta }: Props) {
             </div>
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-800 text-[14px] flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg,#E76F51,#F4A261)' }}>AZ</div>
+                style={{ background: 'linear-gradient(135deg,#264653,#457B9D)' }}>TT</div>
+              <div>
+                <p className="text-[14px] font-700 text-navy">Terrence Tricco</p>
+                <p className="text-[12px] text-slate-500">Associate Professor, Department of Computer Science</p>
+                <p className="text-[12px] text-slate-400 mt-[2px]">Memorial University of Newfoundland</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-800 text-[14px] flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg,#E9C46A,#F4A261)' }}>ES</div>
+              <div>
+                <p className="text-[14px] font-700 text-navy">Elhamy Samak</p>
+                <p className="text-[12px] text-slate-500">Clinical Assistant Professor of Family Medicine</p>
+                <p className="text-[12px] text-slate-400 mt-[2px]">Memorial University of Newfoundland</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-800 text-[14px] flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg,#E76F51,#F4A261)' }}>SS</div>
+              <div>
+                <p className="text-[14px] font-700 text-navy">Steve Slade</p>
+                <p className="text-[12px] text-slate-500">Director of Research</p>
+                <p className="text-[12px] text-slate-400 mt-[2px]">The College of Family Physicians of Canada</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-800 text-[14px] flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg,#8ECAE6,#457B9D)' }}>AZ</div>
               <div>
                 <p className="text-[14px] font-700 text-navy">Abdul Rahman Zahiri</p>
                 <p className="text-[12px] text-slate-500">Research Assistant</p>
