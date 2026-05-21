@@ -227,6 +227,15 @@ export function aggTopicTotals(d: DashData, f: FilterState): Record<string, numb
   return m
 }
 
+export function aggBertopicTotals(d: DashData, f: FilterState): Record<string, number> {
+  const m: Record<string, number> = {}
+  ;(d.bertopic_monthly ?? []).forEach(r => {
+    if (!mY(f, r.ym.slice(0, 4)) || !mP(f, r.pt)) return
+    m[r.topic] = (m[r.topic] || 0) + r.n
+  })
+  return m
+}
+
 export function aggWords(d: DashData, f: FilterState) {
   const m: Record<string, number> = {}
   Object.entries(d.words).forEach(([key, arr]) => {

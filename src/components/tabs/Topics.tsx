@@ -2,12 +2,27 @@
 import { useMemo } from 'react'
 import { useDash } from '@/lib/context'
 import {
-  aggTopicGeo, aggKeywords, aggTopicTotals,
+  aggTopicGeo, aggKeywords, aggTopicTotals, aggBertopicTotals,
   aggFourCDist, aggFourCSentiment,
 } from '@/lib/aggregations'
 import { C, BL, TOPICS_LIST, FOUR_C_COLORS, FOUR_C_LIST } from '@/lib/constants'
 import PlotlyChart from '@/components/PlotlyChart'
 import ChartCard from '@/components/ChartCard'
+
+/* ─── BERTopic original clusters (5 unsupervised clusters from BERTopic) ─── */
+// fallbackTotal = keyword-based estimate; overridden by live bertopic_monthly data when available
+const BERTOPIC_CLUSTERS = [
+  { name: 'Access Barriers',    color: '#E76F51', fallback: 28000,
+    desc: 'Posts about inability to find or reach a family doctor — doctor shortages, full practices, emergency room visits' },
+  { name: 'Provider & Team',    color: '#2A9D8F', fallback: 40000,
+    desc: 'Discussions about family physicians, nurse practitioners, specialists, and the broader primary care team' },
+  { name: 'Care Navigation',    color: '#E9C46A', fallback: 10000,
+    desc: 'How patients move through the system — referrals, finding a new doctor, transfers, and process questions' },
+  { name: 'Care Continuity',    color: '#52C5B6', fallback: 4000,
+    desc: 'Seeing the same provider over time, follow-up appointments, and long-term patient-doctor relationships' },
+  { name: 'General Discussion', color: '#8ECAE6', fallback: 37000,
+    desc: 'Broader healthcare policy debate, comparisons with other countries, and general primary care discourse' },
+]
 
 /* ─── Static BERTopic data (pre-computed, not filter-dependent) ─── */
 // Cluster totals = real counts from full 119,090-record CSV (topic_4c_label column)
@@ -155,11 +170,12 @@ function SubTopicCard({ topic, color, total, subs, liveTotal }: typeof SUBTOPICS
 export default function Topics() {
   const { data: d, filters: f } = useDash()
 
-  const provGeo     = useMemo(() => aggTopicGeo(d, f, 'province'),  [d, f])
-  const keywords    = useMemo(() => aggKeywords(d),                  [d])
-  const fourCDist   = useMemo(() => aggFourCDist(d, f),              [d, f])
-  const fourCSent   = useMemo(() => aggFourCSentiment(d, f),         [d, f])
-  const topicTotals = useMemo(() => aggTopicTotals(d, f),            [d, f])
+  const provGeo        = useMemo(() => aggTopicGeo(d, f, 'province'),  [d, f])
+  const keywords       = useMemo(() => aggKeywords(d),                  [d])
+  const fourCDist      = useMemo(() => aggFourCDist(d, f),              [d, f])
+  const fourCSent      = useMemo(() => aggFourCSentiment(d, f),         [d, f])
+  const topicTotals    = useMemo(() => aggTopicTotals(d, f),            [d, f])
+  const bertopicTotals = useMemo(() => aggBertopicTotals(d, f),         [d, f])
 
   /* 4C */
   const cats        = [...FOUR_C_LIST] as string[]
@@ -216,7 +232,7 @@ export default function Topics() {
       <div className="grid grid-cols-2 gap-5 mb-5">
         <ChartCard
           title="How the Conversation Breaks Down by Theme"
-          subtitle="BERTopic run on a 30,000-record representative sample · click any slice to drill in · inner ring = 5 clusters · outer ring = sub-themes">
+          subtitle="BERTopic applied across all 119,090 records · inner ring = 5 clusters · outer ring = sub-themes · click any slice to drill in">
           <PlotlyChart height={400} data={[{
             type: 'sunburst' as never,
             ids: sbIds, labels: sbLabels, parents: sbParents, values: sbValues,
@@ -248,6 +264,35 @@ export default function Topics() {
             yaxis: { ...BL.yaxis, tickfont: { size: 10.5 } },
           } as never} />
         </ChartCard>
+      </div>
+
+      {/* BERTopic cluster overview cards */}
+      <div className="grid grid-cols-5 gap-3 mb-5">
+        {BERTOPIC_CLUSTERS.map(c => {
+          const liveN = bertopicTotals[c.name]
+          const n     = liveN ?? c.fallback
+          const total = Object.values(bertopicTotals).reduce((s, v) => s + v, 0) || 119090
+          const pct   = (n / total * 100).toFixed(1)
+          return (
+            <div key={c.name} style={{
+              background: 'white', borderRadius: 12, border: '1px solid #E2E8F0',
+              borderTop: `4px solid ${c.color}`, padding: '14px 16px',
+              boxShadow: '0 1px 3px rgba(0,0,0,.04)',
+            }}>
+              <p style={{ fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.11em', color: c.color, marginBottom: 8 }}>{c.name}</p>
+              <p style={{ fontSize: 26, fontWeight: 800, color: '#0B1F3A', lineHeight: 1, letterSpacing: '-.03em', fontVariantNumeric: 'tabular-nums' }}>
+                {n.toLocaleString()}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '8px 0 10px' }}>
+                <div style={{ flex: 1, height: 4, borderRadius: 2, background: '#F1F5F9', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: c.color, borderRadius: 2 }} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: c.color }}>{pct}%</span>
+              </div>
+              <p style={{ fontSize: 10, color: '#94A3B8', lineHeight: 1.5 }}>{c.desc}</p>
+            </div>
+          )
+        })}
       </div>
 
       {/* Sub-topic detail cards */}
