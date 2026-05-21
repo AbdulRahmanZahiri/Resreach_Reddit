@@ -25,8 +25,8 @@ export interface DashData {
   kw_sentiment: KwSent[]
   topics_monthly: TopicMonthly[]
   topics_geo: TopicGeo[]
-  bertopic_monthly: TopicMonthly[]
-  bertopic_geo: TopicGeo[]
+  bertopic_monthly?: TopicMonthly[]
+  bertopic_geo?: TopicGeo[]
   fourC_monthly: FourCMonthly[]
   fourC_geo: FourCGeo[]
   meta: Meta

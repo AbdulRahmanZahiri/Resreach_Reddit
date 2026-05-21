@@ -227,9 +227,21 @@ export function aggTopicTotals(d: DashData, f: FilterState): Record<string, numb
   return m
 }
 
+// Maps 4C topic names → BERTopic cluster names (used as filter-reactive fallback)
+const FORC_TO_BERTOPIC: Record<string, string> = {
+  'Contact / Access':  'Access Barriers',
+  'Care Coordination': 'Care Navigation',
+  'Care Continuity':   'Care Continuity',
+  'Comprehensiveness': 'Provider & Team',
+  'General Discussion':'General Discussion',
+}
+
 export function aggBertopicTotals(d: DashData, f: FilterState): Record<string, number> {
   const m: Record<string, number> = {}
-  ;(d.bertopic_monthly ?? []).forEach(r => {
+  const src = d.bertopic_monthly && d.bertopic_monthly.length > 0
+    ? d.bertopic_monthly
+    : d.topics_monthly.map(r => ({ ...r, topic: FORC_TO_BERTOPIC[r.topic] ?? 'General Discussion' }))
+  src.forEach(r => {
     if (!mY(f, r.ym.slice(0, 4)) || !mP(f, r.pt)) return
     m[r.topic] = (m[r.topic] || 0) + r.n
   })
