@@ -12,20 +12,20 @@ import ChartCard from '@/components/ChartCard'
 /* ─── BERTopic original clusters (5 unsupervised clusters from BERTopic) ─── */
 // fallbackTotal = keyword-based estimate; overridden by live bertopic_monthly data when available
 const BERTOPIC_CLUSTERS = [
-  { name: 'Access Barriers',    color: '#E76F51', fallback: 28000,
+  { name: 'Access Barriers',    color: '#E76F51', fallback: 26036,
     desc: 'Posts about inability to find or reach a family doctor — doctor shortages, full practices, emergency room visits' },
-  { name: 'Provider & Team',    color: '#2A9D8F', fallback: 40000,
+  { name: 'Provider & Team',    color: '#2A9D8F', fallback: 37352,
     desc: 'Discussions about family physicians, nurse practitioners, specialists, and the broader primary care team' },
-  { name: 'Care Navigation',    color: '#E9C46A', fallback: 10000,
+  { name: 'Care Navigation',    color: '#E9C46A', fallback: 2771,
     desc: 'How patients move through the system — referrals, finding a new doctor, transfers, and process questions' },
-  { name: 'Care Continuity',    color: '#52C5B6', fallback: 4000,
+  { name: 'Care Continuity',    color: '#52C5B6', fallback: 979,
     desc: 'Seeing the same provider over time, follow-up appointments, and long-term patient-doctor relationships' },
-  { name: 'General Discussion', color: '#8ECAE6', fallback: 37000,
+  { name: 'General Discussion', color: '#8ECAE6', fallback: 22260,
     desc: 'Broader healthcare policy debate, comparisons with other countries, and general primary care discourse' },
 ]
 
 /* ─── Static BERTopic data (pre-computed, not filter-dependent) ─── */
-// Cluster totals = real counts from full 119,090-record CSV (topic_4c_label column)
+// Cluster totals = real counts from the filtered 89,398-record healthcare-relevant CSV (topic_4c_label column)
 // Sub-topic names and proportions come from BERTopic run on a 30,000-record sample
 const SUBTOPICS = [
   {
@@ -193,7 +193,7 @@ export default function Topics() {
   const sbIds: string[]     = ['Topics']
   const sbLabels: string[]  = ['All Topics']
   const sbParents: string[] = ['']
-  const sbValues: number[]  = [SUBTOPICS.reduce((s, t) => s + t.total, 0)]
+  const sbValues: number[]  = [SUBTOPICS.reduce((s, t) => s + (topicTotals[t.topic] ?? t.total), 0)]
   const sbColors: string[]  = ['#F1F5F9']
 
   SUBTOPICS.forEach(t => {
@@ -204,12 +204,21 @@ export default function Topics() {
     sbParents.push('Topics')
     sbValues.push(liveTotal)
     sbColors.push(t.color)
+    // Round each child independently, then correct the largest one so the
+    // children sum EXACTLY to liveTotal — Plotly silently drops the whole
+    // sunburst trace if branchvalues='total' children ever exceed the parent.
+    const subVals = t.subs.map(s => Math.round((s.n / sampleSum) * liveTotal))
+    const overflow = subVals.reduce((a, b) => a + b, 0) - liveTotal
+    if (overflow !== 0 && subVals.length > 0) {
+      const idx = subVals.indexOf(Math.max(...subVals))
+      subVals[idx] -= overflow
+    }
     t.subs.forEach((s, i) => {
       const id = `${t.topic}::${s.name}`
       sbIds.push(id)
       sbLabels.push(s.name)
       sbParents.push(t.topic)
-      sbValues.push(Math.round((s.n / sampleSum) * liveTotal))
+      sbValues.push(subVals[i])
       sbColors.push(t.color + (i === 0 ? 'CC' : '88'))
     })
   })
@@ -232,7 +241,7 @@ export default function Topics() {
       <div className="grid grid-cols-2 gap-5 mb-5">
         <ChartCard
           title="How the Conversation Breaks Down by Theme"
-          subtitle="BERTopic applied across all 119,090 records · inner ring = 5 clusters · outer ring = sub-themes · click any slice to drill in">
+          subtitle="BERTopic applied across all 89,398 healthcare-relevant records · inner ring = 5 clusters · outer ring = sub-themes · click any slice to drill in">
           <PlotlyChart height={400} data={[{
             type: 'sunburst' as never,
             ids: sbIds, labels: sbLabels, parents: sbParents, values: sbValues,
@@ -271,7 +280,7 @@ export default function Topics() {
         {BERTOPIC_CLUSTERS.map(c => {
           const liveN = bertopicTotals[c.name]
           const n     = liveN ?? c.fallback
-          const total = Object.values(bertopicTotals).reduce((s, v) => s + v, 0) || 119090
+          const total = Object.values(bertopicTotals).reduce((s, v) => s + v, 0) || 89398
           const pct   = (n / total * 100).toFixed(1)
           return (
             <div key={c.name} style={{
@@ -415,7 +424,7 @@ export default function Topics() {
       <SectionLabel label="The Words That Define the Data" color="#264653" />
 
       <ChartCard title="Most Frequently Mentioned Terms"
-        subtitle="Pre-computed across all 119,090 records · not affected by the year/post-type filter · red = negative-heavy · teal = balanced"
+        subtitle="Pre-computed across all 89,398 healthcare-relevant records · not affected by the year/post-type filter · red = negative-heavy · teal = balanced"
         className="mb-2">
         <PlotlyChart height={340} data={[{
           x: keywords.map(k => k.n), y: keywords.map(k => k.kw),

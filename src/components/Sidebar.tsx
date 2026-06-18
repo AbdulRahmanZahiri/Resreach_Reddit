@@ -164,7 +164,7 @@ export default function Sidebar({ meta, filters, kpis, onYearChange, onGeoChange
       {/* Team */}
       <div className="relative px-5 py-5 flex flex-col gap-[12px] mt-auto">
         <SectionLabel>Research Team</SectionLabel>
-        <TeamLine role="Principal Investigator" name="Prof. Maisam Najafizada" />
+        <TeamLine role="Principal Investigator, Associate Professor" name="Maisam Najafizada" />
         <TeamLine role="Research Assistant"     name="Abdul Rahman Zahiri" />
         <TeamLine role="Data Source"            name="Reddit · Google BigQuery" />
       </div>

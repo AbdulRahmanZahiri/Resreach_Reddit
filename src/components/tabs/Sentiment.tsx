@@ -139,7 +139,7 @@ export default function Sentiment() {
 
       <div className="grid grid-cols-2 gap-[18px] mb-5">
         <SentGeoChart title="Sentiment by Province" geoType="province"
-          subtitle="69,226 of 119,090 records have an identified province/city · 49,864 from national subreddits (r/canada, r/askcanada) or unspecified location cannot be attributed to a province" />
+          subtitle="49,764 of 89,398 records have an identified province/city · 39,634 from national subreddits (r/canada, r/askcanada) or unspecified location cannot be attributed to a province" />
         <SentGeoChart title="Sentiment by City" geoType="city"
           subtitle="Records from city-level subreddits only · each city's posts are also rolled into its province total above" />
       </div>
