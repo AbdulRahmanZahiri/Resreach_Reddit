@@ -4,7 +4,7 @@ import { FilterState } from '@/lib/types'
 interface Props {
   meta: { total: number; date_min: string; date_max: string; years: number[]; geos: string[] }
   filters: FilterState
-  kpis: { total: number; posts: number; cmts: number; peakM: string; avgSc: string; sent: { avg: number } }
+  kpis: { total: number; posts: number; cmts: number; peakM: string; avgSc: string; sent: { avg: number }; sentLbl: string }
   onYearChange: (y: number, checked: boolean) => void
   onGeoChange:  (g: string) => void
   onPtChange:   (p: string) => void
@@ -13,8 +13,8 @@ interface Props {
 }
 
 export default function Sidebar({ meta, filters, kpis, onYearChange, onGeoChange, onPtChange, onReset, isFiltered }: Props) {
-  const sentLabel = kpis.sent.avg >= 0.05 ? 'Positive' : kpis.sent.avg <= -0.05 ? 'Negative' : 'Neutral'
-  const sentColor = kpis.sent.avg >= 0.05 ? '#2A9D8F' : kpis.sent.avg <= -0.05 ? '#E76F51' : '#E9C46A'
+  const sentLabel = kpis.sentLbl
+  const sentColor = sentLabel === 'Mostly Positive' ? '#2A9D8F' : sentLabel === 'Mostly Negative' ? '#E76F51' : '#E9C46A'
 
   return (
     <aside id="sidebar"

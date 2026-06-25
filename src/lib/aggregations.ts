@@ -280,7 +280,16 @@ export function aggKPIs(d: DashData, f: FilterState) {
   const topCity = topAll.find(([g]) => CITY_LABELS.has(g))?.[0] || '—'
   const avgSc   = scN > 0 ? (scSum / scN).toFixed(1) : '—'
   const sent    = aggSentOverall(d, f)
-  const sentLbl = sent.avg >= 0.05 ? 'Mostly Positive' : sent.avg <= -0.05 ? 'Mostly Negative' : 'Mostly Neutral'
+  // Label reflects the majority category, not the mean compound score — VADER's
+  // mean can read positive even when negative posts are the largest single group,
+  // since supportive/advice replies skew strongly positive in the average.
+  const sentCounts: [string, number][] = [
+    ['Mostly Positive', sent.pos],
+    ['Mostly Negative', sent.neg],
+    ['Mostly Neutral', sent.neu],
+    ['Mostly Mixed', sent.mix],
+  ]
+  const sentLbl = sentCounts.reduce((a, b) => (b[1] > a[1] ? b : a))[0]
   return { total, posts, cmts, peakM, peakN, topLoc, topProv, topCity, avgSc, sent, sentLbl }
 }
 
